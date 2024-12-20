@@ -7,10 +7,10 @@ function startReportGeneration() {
     const reportFrame = document.getElementById("report-frame");
 
     // Reset and display progress elements
-    progressBar.style.width = "0%";
-    progressText.innerText = "Starting process...";
     progressBar.parentElement.style.display = "block";
     progressText.style.display = "block";
+    progressBar.style.width = "0%";
+    progressText.innerText = "Starting process...";
     generateButton.disabled = true;
     regenerateButton.style.display = "none";
     reportFrame.src = ""; // Clear previous report
@@ -19,20 +19,21 @@ function startReportGeneration() {
     fetch('/generate_report/', { method: 'POST' })
         .then(response => {
             if (!response.ok) {
-                throw new Error("Error starting report generation");
+                throw new Error("Error starting report generation.");
             }
             // Start polling for progress
             const progressInterval = setInterval(() => {
                 fetch('/progress/')
                     .then(response => response.json())
                     .then(data => {
-                        progressBar.style.width = `${data.percent}%`;
-                        progressText.innerText = `${data.stage} ${data.company} (${data.percent}%)`;
-
-                        if (data.percent >= 100) {
+                        if (data.percent < 100) {
+                            progressBar.style.width = `${data.percent}%`;
+                            progressText.innerText = `${data.stage} ${data.company} (${data.percent}%)`;
+                        } else {
                             clearInterval(progressInterval);
+                            progressBar.parentElement.style.display = "none";
+                            generateButton.style.display = "none";
                             progressText.innerText = "Report generation complete!";
-                            generateButton.disabled = false;
                             regenerateButton.style.display = "block";
                             reportFrame.src = '/view-report/';
                         }
