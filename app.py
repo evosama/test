@@ -361,6 +361,7 @@ async def read_root(request: Request):
 # Endpoint to trigger the process in the background
 @app.post("/generate_report/")
 async def generate_report(background_tasks: BackgroundTasks):
+    global progress
     background_tasks.add_task(run_script, background_tasks)
     return {"message": "Report generation started"}
 
@@ -377,9 +378,8 @@ async def view_report():
     latest_report = get_most_recent_report()
     if not latest_report:
         return HTMLResponse("<h1>No reports found!</h1>", status_code=404)
-
+    else:
     # Read and return the contents of the latest report
-    with open(latest_report, "r", encoding="utf-8") as file:
-        report_content = file.read()
-
-    return HTMLResponse(content=report_content)
+        with open(latest_report, "r", encoding="utf-8") as file:
+            report_content = file.read()
+        return HTMLResponse(content=report_content)
